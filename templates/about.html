@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}About | Black Shadow Team{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <h1>About <span>Us</span></h1>
+  <p>The story behind the shadow</p>
+</div>
+
+<div class="about-section">
+  <div class="founder-card">
+    <div class="founder-visual">
+      <div class="founder-img-wrap">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="BST Logo">
+        <div class="founder-ring"></div>
+      </div>
+      <div class="founder-name">MUSFIQUR RAHIM</div>
+      <div class="founder-title">Founder & CEO</div>
+    </div>
+
+    <div class="founder-info">
+      <h2>The <span>Founder</span></h2>
+
+      <div class="info-block">
+        <h3>Identity</h3>
+        <p>
+          <strong style="color:#f0f0f0;">Musfiqur Rahim</strong> — known by the nickname
+          <strong style="color:#c0392b;">Mahin</strong>.<br>
+          A secret researcher, AI researcher, ethical hacker, app & web developer, and mini game developer.
+        </p>
+      </div>
+
+      <div class="info-block">
+        <h3>Expertise</h3>
+        <div class="tag-list">
+          <span class="tag">Ethical Hacking</span>
+          <span class="tag">Security Research</span>
+          <span class="tag">AI Research</span>
+          <span class="tag">Web Development</span>
+          <span class="tag">App Development</span>
+          <span class="tag">Game Dev</span>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <h3>Education</h3>
+        <ul class="edu-timeline">
+          <li>
+            <strong>Class 1–5 (PSC)</strong>
+            Lakherpar Muktijudha Road, Hamida Ali Beshorkari Prathomik Bidyaloy, Jaflong
+          </li>
+          <li>
+            <strong>Class 6–10 (SSC)</strong>
+            Amir Miah High School, Jaflong
+          </li>
+          <li>
+            <strong>Class 11–12 (Ongoing)</strong>
+            Sylhet Commerce College, Sylhet City
+          </li>
+        </ul>
+      </div>
+
+      <div class="info-block">
+        <h3>Location</h3>
+        <p>Currently living in <strong style="color:#f0f0f0;">Sylhet City</strong> — Village home: <strong style="color:#f0f0f0;">Jaflong</strong></p>
+      </div>
+
+      <div class="info-block">
+        <h3>Contact</h3>
+        <p>
+          📧 <a href="mailto:blackshadowteam.net@gmail.com" style="color:#c0392b;text-decoration:none;">blackshadowteam.net@gmail.com</a><br>
+          📞 01603190083
+        </p>
+      </div>
+
+      <div class="info-block">
+        <h3>Passion</h3>
+        <p>AI research, security research, app & web development, and gaming — especially GTA V.</p>
+      </div>
+
+      <div class="info-block">
+        <h3>About Black Shadow Team</h3>
+        <p style="font-style:italic;color:#aaa;">"Black Shadow Team is my emotion, my dream, and my identity."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
