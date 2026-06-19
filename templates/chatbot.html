@@ -103,16 +103,9 @@
 </style>
 
 <script>
-// ╔═════════════════════════════════════════╗
-// ║  SHADOW AI  — Black Shadow Team © 2026 ║
-// ║  Secure: keys stored in backend only   ║
-// ╚═════════════════════════════════════════╝
-
-// Chat history (for context, sent to backend)
 let chatHistory = [];
-const MAX_HIST  = 8; // last 4 turns
+const MAX_HIST  = 8; 
 
-// Response cache (same question = 0 server calls)
 const cache     = new Map();
 const MAX_CACHE = 40;
 
@@ -129,7 +122,6 @@ async function sendMsg() {
   setStatus("busy", "Thinking...");
 
   try {
-    // 1) Check cache first — zero server calls
     const cKey = text.toLowerCase().replace(/\s+/g," ");
     if (cache.has(cKey)) {
       const cached = cache.get(cKey);
@@ -142,7 +134,6 @@ async function sendMsg() {
       return;
     }
 
-    // 2) Call Flask backend (keys are safe on server)
     const res = await fetch("/api/chat", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
@@ -163,12 +154,10 @@ async function sendMsg() {
       const reply  = data.reply;
       const engine = data.engine || "Shadow AI";
 
-      // Update history
       chatHistory.push({ role: "user",      content: text  });
       chatHistory.push({ role: "assistant", content: reply });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-16);
 
-      // Save to cache
       if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
       cache.set(cKey, { reply, engine });
 
@@ -188,7 +177,6 @@ async function sendMsg() {
   input.focus();
 }
 
-// ── Helpers ───────────────────────────────────
 function setStatus(state, label) {
   document.getElementById("statusDot").className =
     "status-dot" + (state === "online" ? "" : " " + state);
@@ -232,5 +220,4 @@ function removeTyping(id) {
 
 setStatus("online", "Online");
 </script>
-
 {% endblock %}
