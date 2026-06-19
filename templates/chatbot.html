@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}AI Chat | Black Shadow Team{% endblock %}
+{% block content %}
+
+<div class="chatbot-wrap">
+  <h1>BST <span>AI Assistant</span></h1>
+  <p>Powered by HuggingFace — Free AI Chat</p>
+
+  <div class="chat-window">
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg bot">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-text">
+          আস্সালামু আলাইকুম! আমি BST AI Assistant।<br>
+          <em style="color:#666;font-size:0.82rem;">Hello! I'm the BST AI Assistant. How can I help you?</em>
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <textarea id="userInput" placeholder="Type your message..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send</button>
+    </div>
+    <div class="chat-note">Powered by HuggingFace Mistral-7B · Free · No login required</div>
+  </div>
+</div>
+
+<script>
+const HF_API = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3";
+
+async function sendMsg() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+  const typingId = addTyping();
+  try {
+    const prompt = `<s>[INST] You are BST AI Assistant for Black Shadow Team, a tech company from Bangladesh. Answer helpfully. If asked in Bengali, reply in Bengali.\nUser: ${text} [/INST]`;
+    const res = await fetch(HF_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 300, temperature: 0.7, return_full_text: false } })
+    });
+    removeTyping(typingId);
+    if (res.status === 503) {
+      addMsg('bot', '⏳ Model loading... please wait 20 seconds and try again.');
+    } else if (!res.ok) {
+      addMsg('bot', '❌ Something went wrong. Please try again.');
+    } else {
+      const data = await res.json();
+      let reply = data[0]?.generated_text || "Sorry, please try again.";
+      reply = reply.replace(/\[INST\].*?\[\/INST\]/gs, '').trim();
+      addMsg('bot', reply);
+    }
+  } catch(e) {
+    removeTyping(typingId);
+    addMsg('bot', '⚠️ Network error. Please check connection.');
+  }
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function addMsg(role, text) {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="msg-avatar">${role==='bot'?'🤖':'👤'}</div><div class="msg-text">${text.replace(/\n/g,'<br>')}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addTyping() {
+  const box = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'msg bot'; div.id = 'typing-indicator';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-text typing"><span></span><span></span><span></span></div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return 'typing-indicator';
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+</script>
+
+{% endblock %}
