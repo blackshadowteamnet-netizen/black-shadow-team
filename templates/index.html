@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Black Shadow Team | Official{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-logo">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Black Shadow Team Logo">
+    </div>
+    <div class="hero-eyebrow">Official Website</div>
+    <h1>BLACK <em>SHADOW</em> TEAM</h1>
+    <p class="hero-sub">Founder: Musfiqur Rahim (Mahin)</p>
+    <p class="hero-desc">
+      We operate in the shadows, building powerful digital solutions —
+      from ethical hacking and AI research to web, app & game development.
+    </p>
+    <div class="hero-btns">
+      <a href="{{ url_for('about') }}" class="btn btn-red">Our Story</a>
+      <a href="{{ url_for('chatbot') }}" class="btn btn-ghost">Try AI Chat</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider">Services</div>
+
+<section class="services">
+  <div class="section-header">
+    <h2>What We <span>Do</span></h2>
+    <p>Precision. Stealth. Excellence.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-icon">🔒</div>
+      <h3>Ethical Hacking</h3>
+      <p>Security research and penetration testing to protect digital assets from real-world threats.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🤖</div>
+      <h3>AI Research</h3>
+      <p>Exploring and building intelligent systems using the latest in machine learning and AI.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🌐</div>
+      <h3>Web & App Dev</h3>
+      <p>Modern, responsive web applications and mobile apps built for performance and beauty.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🎮</div>
+      <h3>Game Development</h3>
+      <p>Mini games and interactive experiences crafted with passion and creative vision.</p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
