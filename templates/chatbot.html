@@ -1,91 +1,236 @@
 {% extends "base.html" %}
-{% block title %}AI Chat | Black Shadow Team{% endblock %}
+{% block title %}Shadow AI | Black Shadow Team{% endblock %}
 {% block content %}
 
 <div class="chatbot-wrap">
-  <h1>BST <span>AI Assistant</span></h1>
-  <p>Powered by HuggingFace — Free AI Chat</p>
+
+  <div class="shadow-ai-header">
+    <div class="shadow-ai-logo">
+      <div class="ai-pulse-ring"></div>
+      <div class="ai-core">🌑</div>
+    </div>
+    <div class="shadow-ai-title">
+      <h1>SHADOW <span>AI</span></h1>
+      <p>Created by Musfiqur Rahim (Mahin) · Black Shadow Team</p>
+    </div>
+    <div class="ai-status-badge">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="aiBadgeText">Online</span>
+    </div>
+  </div>
 
   <div class="chat-window">
     <div class="chat-messages" id="chatMessages">
       <div class="msg bot">
-        <div class="msg-avatar">🤖</div>
+        <div class="msg-avatar">🌑</div>
         <div class="msg-text">
-          আস্সালামু আলাইকুম! আমি BST AI Assistant।<br>
-          <em style="color:#666;font-size:0.82rem;">Hello! I'm the BST AI Assistant. How can I help you?</em>
+          আমি <strong style="color:#c0392b;">Shadow AI</strong> — Black Shadow Team এর official AI।<br>
+          আমাকে তৈরি করেছেন <strong style="color:#c0392b;">Musfiqur Rahim (Mahin)</strong>, Founder of Black Shadow Team।<br>
+          <em style="color:#555;font-size:0.82rem;">I support all languages. Ask me anything! 🌍</em>
         </div>
       </div>
     </div>
     <div class="chat-input-area">
-      <textarea id="userInput" placeholder="Type your message..." rows="1"
+      <textarea id="userInput"
+        placeholder="Shadow AI কে কিছু জিজ্ঞেস করুন..."
+        rows="1"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
-        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-      <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send</button>
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">
+      </textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMsg()">➤</button>
     </div>
-    <div class="chat-note">Powered by HuggingFace Mistral-7B · Free · No login required</div>
+    <div class="chat-note" id="chatNote">
+      Shadow AI · Secure Backend · All Languages · Black Shadow Team
+    </div>
   </div>
+
 </div>
 
+<style>
+.shadow-ai-header {
+  display:flex; align-items:center; gap:1.2rem;
+  margin-bottom:1.5rem; flex-wrap:wrap;
+}
+.shadow-ai-logo {
+  position:relative; width:56px; height:56px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.ai-pulse-ring {
+  position:absolute; inset:0;
+  border:2px solid rgba(192,57,43,0.5);
+  border-radius:50%;
+  animation:aiPulse 2s ease-in-out infinite;
+}
+.ai-pulse-ring::after {
+  content:''; position:absolute; inset:-7px;
+  border:1px solid rgba(192,57,43,0.2);
+  border-radius:50%;
+  animation:aiPulse 2s ease-in-out infinite 0.4s;
+}
+@keyframes aiPulse {
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.15);opacity:0.4}
+}
+.ai-core {
+  font-size:2rem; z-index:1;
+  filter:drop-shadow(0 0 14px rgba(192,57,43,0.9));
+}
+.shadow-ai-title { flex:1; }
+.shadow-ai-title h1 {
+  font-family:var(--font-display); font-size:1.4rem;
+  letter-spacing:3px; color:var(--white); margin:0 0 0.2rem;
+}
+.shadow-ai-title h1 span { color:var(--red); }
+.shadow-ai-title p { color:var(--muted); font-size:0.8rem; letter-spacing:1px; margin:0; }
+.ai-status-badge {
+  display:flex; align-items:center; gap:0.5rem;
+  background:rgba(192,57,43,0.1); border:1px solid rgba(192,57,43,0.3);
+  padding:0.4rem 1rem; border-radius:20px;
+  font-family:var(--font-title); font-size:0.75rem;
+  letter-spacing:1px; color:var(--red); text-transform:uppercase;
+}
+.status-dot {
+  width:7px; height:7px; background:#2ecc71;
+  border-radius:50%; animation:blink 1.5s infinite; transition:background 0.3s;
+}
+.status-dot.busy  { background:#f39c12; }
+.status-dot.error { background:#e74c3c; animation:none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.chatbot-wrap {
+  padding:2.5rem 2rem; max-width:900px;
+  margin:0 auto; flex:1; display:flex; flex-direction:column;
+}
+</style>
+
 <script>
-const HF_API = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3";
+// ╔═════════════════════════════════════════╗
+// ║  SHADOW AI  — Black Shadow Team © 2026 ║
+// ║  Secure: keys stored in backend only   ║
+// ╚═════════════════════════════════════════╝
+
+// Chat history (for context, sent to backend)
+let chatHistory = [];
+const MAX_HIST  = 8; // last 4 turns
+
+// Response cache (same question = 0 server calls)
+const cache     = new Map();
+const MAX_CACHE = 40;
 
 async function sendMsg() {
-  const input = document.getElementById('userInput');
-  const text = input.value.trim();
-  if (!text) return;
-  addMsg('user', text);
-  input.value = '';
-  input.style.height = 'auto';
-  document.getElementById('sendBtn').disabled = true;
-  const typingId = addTyping();
+  const input   = document.getElementById("userInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const text    = input.value.trim();
+  if (!text || sendBtn.disabled) return;
+
+  addMsg("user", text);
+  input.value = ""; input.style.height = "auto";
+  sendBtn.disabled = true;
+  const tid = addTyping();
+  setStatus("busy", "Thinking...");
+
   try {
-    const prompt = `<s>[INST] You are BST AI Assistant for Black Shadow Team, a tech company from Bangladesh. Answer helpfully. If asked in Bengali, reply in Bengali.\nUser: ${text} [/INST]`;
-    const res = await fetch(HF_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 300, temperature: 0.7, return_full_text: false } })
-    });
-    removeTyping(typingId);
-    if (res.status === 503) {
-      addMsg('bot', '⏳ Model loading... please wait 20 seconds and try again.');
-    } else if (!res.ok) {
-      addMsg('bot', '❌ Something went wrong. Please try again.');
-    } else {
-      const data = await res.json();
-      let reply = data[0]?.generated_text || "Sorry, please try again.";
-      reply = reply.replace(/\[INST\].*?\[\/INST\]/gs, '').trim();
-      addMsg('bot', reply);
+    // 1) Check cache first — zero server calls
+    const cKey = text.toLowerCase().replace(/\s+/g," ");
+    if (cache.has(cKey)) {
+      const cached = cache.get(cKey);
+      removeTyping(tid);
+      addMsg("bot", cached.reply);
+      document.getElementById("chatNote").textContent =
+        "Shadow AI · " + cached.engine + " · ⚡ Cached";
+      setStatus("online", "Online");
+      sendBtn.disabled = false;
+      return;
     }
-  } catch(e) {
-    removeTyping(typingId);
-    addMsg('bot', '⚠️ Network error. Please check connection.');
+
+    // 2) Call Flask backend (keys are safe on server)
+    const res = await fetch("/api/chat", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({
+        message: text,
+        history: chatHistory.slice(-MAX_HIST)
+      })
+    });
+
+    removeTyping(tid);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      addMsg("bot", "⚠️ Shadow AI সাময়িকভাবে ব্যস্ত। একটু পরে আবার চেষ্টা করুন।");
+      setStatus("error", "Error");
+      setTimeout(() => setStatus("online", "Online"), 3000);
+    } else {
+      const reply  = data.reply;
+      const engine = data.engine || "Shadow AI";
+
+      // Update history
+      chatHistory.push({ role: "user",      content: text  });
+      chatHistory.push({ role: "assistant", content: reply });
+      if (chatHistory.length > 20) chatHistory = chatHistory.slice(-16);
+
+      // Save to cache
+      if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
+      cache.set(cKey, { reply, engine });
+
+      addMsg("bot", reply);
+      document.getElementById("chatNote").textContent =
+        "Shadow AI · " + engine + " · Secure";
+      setStatus("online", "Online");
+    }
+  } catch (e) {
+    removeTyping(tid);
+    addMsg("bot", "⚠️ Network error। Connection চেক করুন।");
+    setStatus("error", "Offline");
+    setTimeout(() => setStatus("online", "Online"), 4000);
   }
-  document.getElementById('sendBtn').disabled = false;
+
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+// ── Helpers ───────────────────────────────────
+function setStatus(state, label) {
+  document.getElementById("statusDot").className =
+    "status-dot" + (state === "online" ? "" : " " + state);
+  document.getElementById("aiBadgeText").textContent = label;
 }
 
 function addMsg(role, text) {
-  const box = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  div.innerHTML = `<div class="msg-avatar">${role==='bot'?'🤖':'👤'}</div><div class="msg-text">${text.replace(/\n/g,'<br>')}</div>`;
+  const box = document.getElementById("chatMessages");
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  const avatar = role === "bot" ? "🌑" : "👤";
+  const safe = text
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g,"<em>$1</em>")
+    .replace(/`(.*?)`/g,
+      "<code style='background:#1a1a1a;padding:0 4px;border-radius:3px;font-size:0.85em'>$1</code>")
+    .replace(/\n/g,"<br>");
+  div.innerHTML =
+    `<div class="msg-avatar">${avatar}</div><div class="msg-text">${safe}</div>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
 
 function addTyping() {
-  const box = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg bot'; div.id = 'typing-indicator';
-  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-text typing"><span></span><span></span><span></span></div>`;
+  const box = document.getElementById("chatMessages");
+  const div = document.createElement("div");
+  div.className = "msg bot"; div.id = "typing-indicator";
+  div.innerHTML =
+    `<div class="msg-avatar">🌑</div>
+     <div class="msg-text typing"><span></span><span></span><span></span></div>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
-  return 'typing-indicator';
+  return "typing-indicator";
 }
 
 function removeTyping(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
 }
+
+setStatus("online", "Online");
 </script>
 
 {% endblock %}
