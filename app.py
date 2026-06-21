@@ -1,13 +1,21 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 import os, requests
+from dotenv import load_dotenv
+
+# Load local .env in development (won't override real environment variables)
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "bst-secret-2026-mahin"
+# Use SECRET_KEY from environment, otherwise generate a random one for dev
+app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
 
 # ── API Keys (Railway/Render Environment Variables থেকে আসবে) ──
 GROQ_KEY   = os.environ.get("GROQ_KEY", "")
 GEMINI_KEY = os.environ.get("GEMINI_KEY", "")
 OPENAI_KEY = os.environ.get("OPENAI_KEY", "")
+
+# Development fallback: if set to "1" and no provider keys are configured, return a canned reply
+DEV_FALLBACK = os.environ.get("DEV_FALLBACK", "1") == "1"
 
 IDENTITY = """You are Shadow AI, official AI of Black Shadow Team (est. 2026, Bangladesh).
 Created by Musfiqur Rahim (Mahin) — Founder & CEO, ethical hacker, AI researcher, developer.
@@ -32,7 +40,7 @@ def api_chat():
     if GROQ_KEY:
         try:
             msgs = [{"role": "system", "content": IDENTITY}]
-            msgs += history[-8:]  # last 4 turns only
+            msgs += history[-8:]  # last 8 items from history
             msgs.append({"role": "user", "content": message})
 
             r = requests.post(
@@ -52,8 +60,8 @@ def api_chat():
         try:
             contents = []
             for h in history[-8:]:
-                role = "user" if h["role"] == "user" else "model"
-                contents.append({"role": role, "parts": [{"text": h["content"]}]})
+                role = "user" if h.get("role") == "user" else "model"
+                contents.append({"role": role, "parts": [{"text": h.get("content", "")}]})
             contents.append({"role": "user", "parts": [{"text": message}]})
 
             r = requests.post(
@@ -89,6 +97,13 @@ def api_chat():
                 return jsonify({"reply": reply, "engine": "GPT-4o Mini"})
         except Exception as e:
             print(f"OpenAI failed: {e}")
+
+    # Development fallback (optional) — returns a canned response so frontend can be tested without keys
+    if DEV_FALLBACK:
+        return jsonify({
+            "reply": "Shadow AI (dev): API keys are not configured. Set OPENAI_KEY (or GEMINI_KEY/GROQ_KEY) in your environment to enable AI providers.",
+            "engine": "Dev-Fallback"
+        })
 
     return jsonify({"error": "All engines failed"}), 503
 
