@@ -22,6 +22,7 @@
       <li><a href="{{ url_for('home') }}" {% if request.endpoint=='home' %}class="active"{% endif %}>Home</a></li>
       <li><a href="{{ url_for('about') }}" {% if request.endpoint=='about' %}class="active"{% endif %}>About</a></li>
       <li><a href="{{ url_for('chatbot') }}" {% if request.endpoint=='chatbot' %}class="active"{% endif %}>AI Chat</a></li>
+      <li><a href="{{ url_for('shadowqr') }}" {% if request.endpoint=='shadowqr' %}class="active"{% endif %}>ShadowQR</a></li>
       <li><a href="{{ url_for('contact') }}" {% if request.endpoint=='contact' %}class="active"{% endif %}>Contact</a></li>
     </ul>
     <a href="{{ url_for('contact') }}" class="nav-cta">Get In Touch</a>
