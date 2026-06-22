@@ -1,21 +1,13 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 import os, requests
-from dotenv import load_dotenv
-
-# Load local .env in development (won't override real environment variables)
-load_dotenv()
 
 app = Flask(__name__)
-# Use SECRET_KEY from environment, otherwise generate a random one for dev
-app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24))
+app.secret_key = "bst-secret-2026-mahin"
 
-# ── API Keys (Railway/Render Environment Variables থেকে আসবে) ──
+# ── API Keys (Railway Environment Variables থেকে আসবে) ──
 GROQ_KEY   = os.environ.get("GROQ_KEY", "")
 GEMINI_KEY = os.environ.get("GEMINI_KEY", "")
 OPENAI_KEY = os.environ.get("OPENAI_KEY", "")
-
-# Development fallback: if set to "1" and no provider keys are configured, return a canned reply
-DEV_FALLBACK = os.environ.get("DEV_FALLBACK", "1") == "1"
 
 IDENTITY = """You are Shadow AI, official AI of Black Shadow Team (est. 2026, Bangladesh).
 Created by Musfiqur Rahim (Mahin) — Founder & CEO, ethical hacker, AI researcher, developer.
@@ -40,7 +32,7 @@ def api_chat():
     if GROQ_KEY:
         try:
             msgs = [{"role": "system", "content": IDENTITY}]
-            msgs += history[-8:]  # last 8 items from history
+            msgs += history[-8:]  # last 4 turns only
             msgs.append({"role": "user", "content": message})
 
             r = requests.post(
@@ -60,8 +52,8 @@ def api_chat():
         try:
             contents = []
             for h in history[-8:]:
-                role = "user" if h.get("role") == "user" else "model"
-                contents.append({"role": role, "parts": [{"text": h.get("content", "")}]})
+                role = "user" if h["role"] == "user" else "model"
+                contents.append({"role": role, "parts": [{"text": h["content"]}]})
             contents.append({"role": "user", "parts": [{"text": message}]})
 
             r = requests.post(
@@ -98,19 +90,7 @@ def api_chat():
         except Exception as e:
             print(f"OpenAI failed: {e}")
 
-    # Development fallback (optional) — returns a canned response so frontend can be tested without keys
-    if DEV_FALLBACK:
-        return jsonify({
-            "reply": "Shadow AI (dev): API keys are not configured. Set OPENAI_KEY (or GEMINI_KEY/GROQ_KEY) in your environment to enable AI providers.",
-            "engine": "Dev-Fallback"
-        })
-
     return jsonify({"error": "All engines failed"}), 503
-
-# ── Google Search Console Verification ────────
-@app.route("/google7e3bfa63c1cbc993.html")
-def google_verification():
-    return "google-site-verification: google7e3bfa63c1cbc993.html"
 
 # ── Pages ─────────────────────────────────────
 @app.route("/")
@@ -137,6 +117,12 @@ def contact():
 @app.route("/chatbot")
 def chatbot():
     return render_template("chatbot.html")
+
+# New route for ShadowQR preview
+@app.route("/shadowqr")
+def shadowqr():
+    # Render template that links to the standalone static ShadowQR page
+    return render_template("shadowqr.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
